@@ -48,6 +48,7 @@ def download_file(file_url: str, out_put_dir: str, file_name: str = ''):
 def download_modrinth_mod(_mod: str):
     mod_id, mod_version = _mod.split(':')
     url = modrinth_url.replace('{mod_id}', mod_id).replace('{mod_version}', mod_version)
+    print(url)
     print(f'Downloading {mod_id} {mod_version} to {mod_output_dir}')
     download_file(url, mod_output_dir)
     response = requests.get(url, stream=True)
