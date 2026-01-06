@@ -6,12 +6,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      CI_BUILD: true
-      HOTFIX_BUILD: true
-      PR_BUILD: false
-      VERSION_TYPE: beta
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
       - name: gametest
         uses: Gu-ZT/action-test@main
         continue-on-error: false
