@@ -1,0 +1,24 @@
+name: CI for AnvilCraftMod
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CI_BUILD: true
+      HOTFIX_BUILD: true
+      PR_BUILD: false
+      VERSION_TYPE: beta
+    steps:
+      - name: gametest
+        uses: Gu-ZT/action-test
+        continue-on-error: false
+        with:
+          mod: build/libs/anvilcraft-neoforge-${{ steps.version.outputs.version }}.jar
+          extra-mods: create:mc1.21.1-6.0.8 anvilcraft:1.21.1-1.5.0+hotfix.1560
+          test: |
+            aaa
+            bbb
+            ccc

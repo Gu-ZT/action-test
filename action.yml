@@ -1,0 +1,30 @@
+name: Action Input Test
+description: Test if action input
+inputs:
+  extra-mods:
+    description: Path to extra mods (Modrinth <id>:<version> list)
+    required: false
+    default: ""
+  mod:
+    description: Path to the mod file
+    required: true
+    default: ""
+  test:
+    description: Test
+    required: true
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Test input
+      if: ${{ inputs.extra-mods != '' }}
+      shell: python
+      run: |
+        if __name__ == '__main__':
+            mod = '${{ inputs.extra-mods }}'
+            mods = '${{ inputs.extra-mods }}'
+            test = '${{ inputs.test }}'
+        
+            print(mod)
+            print(mods)
+            print(test)
