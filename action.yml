@@ -21,10 +21,10 @@ runs:
       shell: python
       run: |
         if __name__ == '__main__':
-            mod = '${{ inputs.extra-mods }}'
+            mod = '${{ inputs.mod }}'
             mods = '${{ inputs.extra-mods }}'
             test = '''${{ inputs.test }}'''
         
             print(mod)
-            print(mods)
-            print(test)
+            print(mods.split())
+            print(test.split())
