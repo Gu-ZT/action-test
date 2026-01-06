@@ -13,7 +13,7 @@ jobs:
       VERSION_TYPE: beta
     steps:
       - name: gametest
-        uses: Gu-ZT/action-test
+        uses: Gu-ZT/action-test@main
         continue-on-error: false
         with:
           mod: build/libs/anvilcraft-neoforge-${{ steps.version.outputs.version }}.jar
