@@ -1,0 +1,120 @@
+import os
+from xml.etree import ElementTree
+
+import requests
+from requests import Response
+
+mod_loader = 'neoforge'
+minecraft_version = '26.1-snapshot-1'
+root_path = f'./tmp/server/{mod_loader}'
+mod_output_dir = f'{root_path}/mods'
+modrinth_url = f'https://api.modrinth.com/maven/maven/modrinth/{{mod_id}}/{{mod_version}}-{mod_loader},{minecraft_version}/{{mod_id}}-{{mod_version}}-{mod_loader},{minecraft_version}.jar'
+maven_central_url = 'https://repo1.maven.org/maven2'
+
+
+def check_dir(_dir):
+    if not os.path.isdir(_dir):
+        os.makedirs(_dir)
+
+
+def get_file_name(file_url: str, response: Response):
+    file_name = file_url.split('/')[-1]
+    file_name = file_name.split('?')[0]
+    if 'Content-Disposition' in response.headers:
+        for dis in response.headers['Content-Disposition'].split(' '):
+            if not dis.startswith('filename='):
+                continue
+            file_name = dis[10:-1]
+    return file_name
+
+
+def download_file(file_url: str, out_put_dir: str, file_name: str = ''):
+    try:
+        response = requests.get(file_url, stream=True)
+        if not response.status_code == 200:
+            return False
+        if file_name == '':
+            file_name = get_file_name(file_url, response)
+        print(f'Downloaded {file_name}')
+        with open(f'{out_put_dir}/{file_name}', 'wb') as f:
+            f.write(response.content)
+            f.close()
+        return True
+    except Exception as e:
+        print(e)
+        return False
+
+
+def download_modrinth_mod(_mod: str):
+    mod_id, mod_version = _mod.split(':')
+    url = modrinth_url.replace('{mod_id}', mod_id).replace('{mod_version}', mod_version)
+    print(f'Downloading {mod_id} {mod_version} to {mod_output_dir}')
+    download_file(url, mod_output_dir)
+    response = requests.get(url, stream=True)
+    if not os.path.isdir(mod_output_dir):
+        os.makedirs(mod_output_dir)
+    with open(f'{mod_output_dir}/{mod_id}-{mod_version}.jar', 'wb') as f:
+        f.write(response.content)
+        print(f'Downloaded {mod_id} {mod_version}')
+        f.close()
+
+
+def download_maven_file(repo: str, target: str):
+    if repo.endswith('/'):
+        repo = repo[:-1]
+    target_split = target.split(':')
+    group = target_split[0]
+    project = target_split[1]
+    project_url = f'{repo}/{group.replace(".", "/")}/{project}'
+    if len(target_split) == 3:
+        version = target_split[2]
+    else:
+        metadata_url = f'{project_url}/maven-metadata.xml'
+        response = requests.get(metadata_url, stream=True)
+        tree = ElementTree.fromstring(response.content)
+        version = tree.find('versioning/release').text
+    target_url = f'{project_url}/{version}/{project}-{version}.jar'
+    print(f'Downloading {project} {version} to {mod_output_dir}')
+    download_file(target_url, mod_output_dir)
+
+
+def run_and_retry(runnable, retries=5):
+    for i in range(retries):
+        try:
+            if runnable():
+                return
+        except Exception as e:
+            print(e)
+            print(f'Retrying {i + 1}/{retries}')
+    raise Exception('Failed to run')
+
+
+def walk_and_print_dir(path):
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            print(os.path.join(root, file))
+
+
+if __name__ == '__main__':
+    extra_mods: list[str] = '''${{ inputs.extra-mods }}'''.split()
+    maven_repos: list[str] = '''${{ inputs.maven-repos }}'''.split()
+    maven_repos.append(maven_central_url)
+    maven_mods: list[str] = '''${{ inputs.maven-mods }}'''.split()
+    url_mods: list[str] = '''${{ inputs.url-mods }}'''.split()
+    other_files: list[str] = '''${{ inputs.other-files }}'''.split()
+    if len(extra_mods) == 0 and len(extra_mods) == 0 and len(maven_mods) == 0 and len(other_files) == 0:
+        exit(0)
+    check_dir(mod_output_dir)
+    for mod in extra_mods:
+        run_and_retry(lambda: download_modrinth_mod(mod))
+    for maven_mod in maven_mods:
+        for repo in maven_repos:
+            run_and_retry(lambda: download_maven_file(repo, maven_mod))
+    for url_mod in url_mods:
+        run_and_retry(lambda: download_file(url_mod, mod_output_dir))
+    for other_file in other_files:
+        other_file_path, other_file_url = other_file.split('@')
+        other_file_path = f'{root_path}/{other_file_path}'
+        check_dir(other_file_path)
+        run_and_retry(lambda: download_file(other_file_url, other_file_path))
+    walk_and_print_dir(root_path)
