@@ -48,16 +48,8 @@ def download_file(file_url: str, out_put_dir: str, file_name: str = ''):
 def download_modrinth_mod(_mod: str):
     mod_id, mod_version = _mod.split(':')
     url = modrinth_url.replace('{mod_id}', mod_id).replace('{mod_version}', mod_version)
-    print(url)
-    print(f'Downloading {mod_id} {mod_version} to {mod_output_dir}')
-    download_file(url, mod_output_dir)
-    response = requests.get(url, stream=True)
-    if not os.path.isdir(mod_output_dir):
-        os.makedirs(mod_output_dir)
-    with open(f'{mod_output_dir}/{mod_id}-{mod_version}.jar', 'wb') as f:
-        f.write(response.content)
-        print(f'Downloaded {mod_id} {mod_version}')
-        f.close()
+    print(f'Downloading {mod_id} {mod_version} from {url} to {mod_output_dir}')
+    return download_file(url, mod_output_dir)
 
 
 def download_maven_file(repo: str, target: str):
@@ -75,8 +67,8 @@ def download_maven_file(repo: str, target: str):
         tree = ElementTree.fromstring(response.content)
         version = tree.find('versioning/release').text
     target_url = f'{project_url}/{version}/{project}-{version}.jar'
-    print(f'Downloading {project} {version} to {mod_output_dir}')
-    download_file(target_url, mod_output_dir)
+    print(f'Downloading {project} {version} from {target_url} to {mod_output_dir}')
+    return download_file(target_url, mod_output_dir)
 
 
 def run_and_retry(runnable, retries=5):
