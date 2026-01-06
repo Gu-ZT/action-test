@@ -150,7 +150,8 @@ runs:
                 run_and_retry(lambda: download_modrinth_mod(mod))
             for maven_mod in maven_mods:
                 for repo in maven_repos:
-                    run_and_retry(lambda: download_maven_file(repo, maven_mod))
+                    if download_maven_file(repo, maven_mod):
+                        break
             for url_mod in url_mods:
                 run_and_retry(lambda: download_file(url_mod, mod_output_dir))
             for other_file in other_files:
