@@ -96,7 +96,7 @@ runs:
         def download_modrinth_mod(_mod: str):
             mod_id, mod_version = _mod.split(':')
             url = modrinth_url.replace('{mod_id}', mod_id).replace('{mod_version}', mod_version)
-            print(f'Downloading {mod_id} {mod_version} to {mod_output_dir}')
+            print(f'Downloading {mod_id} {mod_version} from {url} to {mod_output_dir}')
             download_file(url, mod_output_dir)
             response = requests.get(url, stream=True)
             if not os.path.isdir(mod_output_dir):
