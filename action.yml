@@ -23,7 +23,7 @@ runs:
         if __name__ == '__main__':
             mod = '${{ inputs.extra-mods }}'
             mods = '${{ inputs.extra-mods }}'
-            test = '${{ inputs.test }}'
+            test = '''${{ inputs.test }}'''
         
             print(mod)
             print(mods)
